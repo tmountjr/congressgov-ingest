@@ -38,7 +38,7 @@ def drop_table():
 def populate():
     """Ingest legislators information."""
 
-    pathspec = "./legislators-current.json"
+    pathspec = "data/legislators-current.json"
     with open(pathspec, "r", encoding="utf-8") as f:
         data = json.loads(f.read())
 

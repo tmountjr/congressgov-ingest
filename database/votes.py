@@ -102,20 +102,18 @@ def populate():
                 pathspec = f"{root_pathspec}/{congress_num}/votes/{year}"
                 vote_files = glob.glob("**/*.json", root_dir=pathspec, recursive=True)
                 for vote_file in vote_files:
-                    print(f"loading from {pathspec}/{vote_file}")
                     with open(f"{pathspec}/{vote_file}", "r", encoding="utf-8") as f:
                         data = json.load(f)
 
                     # Get vote metadata first
                     bill_info = data.get("bill")
-                    b_type = bill_info.get("type")
-                    b_number = bill_info.get("number")
-                    b_congress = bill_info.get("congress")
-                    bill_id = (
-                        f"{b_type}{b_number}-{b_congress}"
-                        if bill_info
-                        else "N/A"
-                    )
+                    if bill_info:
+                        b_type = bill_info.get("type")
+                        b_number = bill_info.get("number")
+                        b_congress = bill_info.get("congress")
+                        bill_id = f"{b_type}{b_number}-{b_congress}"
+                    else:
+                        bill_id = "N/A"
                     chamber = data.get("chamber")
 
                     vote_meta = VoteMeta(

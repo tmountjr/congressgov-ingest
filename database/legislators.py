@@ -1,13 +1,20 @@
-from sqlalchemy import Column, String, text
-from sqlalchemy.orm import Session
-from database.base import Base, engine
+"""Maintain and load data for `legislators` table."""
+
 import json
+from database.base import Base, engine
+from sqlalchemy.orm import Session
+from sqlalchemy import Column, String, text
 
 
 class Legislator(Base):
+    """
+    ORM class for individual legislators.
+    """
     __tablename__ = "legislators"
 
-    bioguide_id = Column(String, primary_key=True)
+    bioguide_id = Column(String)
+    lis_id = Column(String)
+    id = Column(String, primary_key=True)
     name = Column(String)
     term_type = Column(String)
     state = Column(String)
@@ -27,6 +34,7 @@ def drop_table():
     """Drop the legislators table."""
     Legislator.__table__.drop(engine)
 
+
 def populate():
     """Ingest legislators information."""
 
@@ -43,9 +51,16 @@ def populate():
             term = record.get("terms")[-1]
             party_name = term.get("party")
             party_shortname = party_name[0]
+            legislator_id = record.get("id")
 
             legislator = Legislator(
                 bioguide_id=record.get("id").get("bioguide"),
+                lis_id=record.get("id").get("lis"),
+                id=(
+                    legislator_id.get("lis")
+                    if term.get("type") == "sen"
+                    else legislator_id.get("bioguide")
+                ),
                 name=record.get("name").get("official_full"),
                 term_type=term.get("type"),
                 state=term.get("state"),

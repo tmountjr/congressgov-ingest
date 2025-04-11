@@ -12,10 +12,10 @@ from database.bills import (
   create_table as create_bills_table,
   populate as populate_bills_table
 )
-from database.vote_meta import (
-  drop_table as drop_vote_meta_table,
-  create_table as create_vote_meta_table,
-  populate as populate_vote_meta_table
+from database.votes import (
+  drop_table as drop_votes_table,
+  create_table as create_votes_table,
+  populate as populate_votes_table
 )
 
 if __name__ == "__main__":
@@ -29,7 +29,7 @@ if __name__ == "__main__":
     create_bills_table()
     populate_bills_table()
 
-    print("Importing vote metadata...")
-    drop_vote_meta_table()
-    create_vote_meta_table()
-    populate_vote_meta_table()
+    print("Importing votes and vote metadata...")
+    drop_votes_table()
+    create_votes_table()
+    populate_votes_table()

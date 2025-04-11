@@ -1,3 +1,5 @@
+"""Maintain and load data for `bills` table."""
+
 import glob
 import json
 from dateutil import parser

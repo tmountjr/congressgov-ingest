@@ -1,0 +1,3 @@
+ingest-venv
+__pycache__
+*.db

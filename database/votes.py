@@ -79,7 +79,7 @@ def populate():
     them at the same time.
     """
 
-    root_pathspec = "../congress/data"
+    root_pathspec = "data"
     congress_nums = [
         d.replace("./", "")
         for d in glob.glob("./[0-9]*", root_dir=root_pathspec, recursive=False)

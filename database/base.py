@@ -6,4 +6,4 @@ from sqlalchemy.orm import declarative_base
 Base = declarative_base()
 
 # Database engine
-engine = create_engine("sqlite:///crossing-the-aisle.db")
+engine = create_engine("sqlite:///congressgov.db")

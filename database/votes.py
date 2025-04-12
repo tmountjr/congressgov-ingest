@@ -20,6 +20,7 @@ class VoteMeta(Base):
     date = Column(DateTime)
     result = Column(String)
     category = Column(String)
+    nomination_title = Column(String)
     source_filename = Column(String)
 
     # Relationship to Bills
@@ -115,6 +116,12 @@ def populate():
                     else:
                         bill_id = "N/A"
                     chamber = data.get("chamber")
+                    is_nomination = "nomination" in data
+                    nomination_title = (
+                        None
+                        if not is_nomination
+                        else data.get("nomination").get("title")
+                    )
 
                     vote_meta = VoteMeta(
                         vote_number=data.get("number"),
@@ -123,7 +130,8 @@ def populate():
                         chamber=chamber,
                         date=parser.parse(data.get("date")),
                         result=data.get("result_text"),
-                        category=data.get("category"),
+                        category=data.get("category").strip(),
+                        nomination_title=nomination_title,
                         source_filename=vote_file,
                     )
                     # Add to session

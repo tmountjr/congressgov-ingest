@@ -16,6 +16,7 @@ class Bill(Base):
     __tablename__ = "bills"
 
     bill_id = Column(String, primary_key=True)
+    bill_type = Column(String)
     bill_number = Column(String)
     title = Column(String)
     short_title = Column(String)
@@ -64,6 +65,7 @@ def populate():
                 bill = Bill(
                     source_filename=pathspec.replace('../congress/', ''),
                     bill_id=data.get("bill_id"),
+                    bill_type=data.get("bill_type"),
                     bill_number=data.get("number"),
                     title=data.get("official_title"),
                     short_title=data.get("short_title"),

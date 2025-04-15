@@ -18,7 +18,7 @@ class Legislator(Base):
     name = Column(String)
     term_type = Column(String)
     state = Column(String)
-    district = Column(String, nullable=True)
+    district = Column(String)
     party = Column(String)
     url = Column(String)
     address = Column(String)

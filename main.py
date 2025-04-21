@@ -23,6 +23,7 @@ if __name__ == "__main__":
 
     print("Importing legislators...")
     legis_orm = LegislatorOrm(args.data_dir)
+    legis_orm.fetch_list()
     legis_orm.create_table()
     legis_orm.populate()
 

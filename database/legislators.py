@@ -5,6 +5,7 @@ import json
 from database.base import Base, BaseOrm
 from sqlalchemy import Column, String, text, inspect
 from sqlalchemy.orm import Session
+from urllib.request import urlretrieve
 
 
 class Legislator(Base):
@@ -42,6 +43,12 @@ class LegislatorOrm(BaseOrm):
         """Drop the legislators table."""
         if inspect(self.engine).has_table(Legislator.__tablename__):
             Legislator.__table__.drop(self.engine)
+
+    def fetch_list(self):
+        """Fetch the legislator list from the online JSON file."""
+        url = "https://unitedstates.github.io/congress-legislators/legislators-current.json"
+        filename = os.path.join(self.data_dir, "legislators-current.json")
+        urlretrieve(url, filename)
 
     def populate(self):
         """Ingest legislators information."""

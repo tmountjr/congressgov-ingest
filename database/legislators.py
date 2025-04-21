@@ -1,5 +1,6 @@
 """Maintain and load data for `legislators` table."""
 
+import os
 import json
 from database.base import Base, engine
 from sqlalchemy.orm import Session
@@ -35,10 +36,10 @@ def drop_table():
     Legislator.__table__.drop(engine)
 
 
-def populate():
+def populate(data_dir="data"):
     """Ingest legislators information."""
 
-    pathspec = "data/legislators-current.json"
+    pathspec = os.path.join(data_dir, "legislators-current.json")
     with open(pathspec, "r", encoding="utf-8") as f:
         data = json.loads(f.read())
 

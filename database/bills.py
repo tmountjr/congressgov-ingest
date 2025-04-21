@@ -40,13 +40,12 @@ def drop_table():
     Bill.__table__.drop(engine)
 
 
-def populate():
+def populate(data_dir="data"):
     """Ingest bill information."""
 
-    root_pathspec = "data"
     congress_nums = [
         d.replace("./", "")
-        for d in glob.glob("./[0-9]*", root_dir=root_pathspec, recursive=False)
+        for d in glob.glob("./[0-9]*", root_dir=data_dir, recursive=False)
         if d.replace("./", "", 1).isdigit()
     ]
 
@@ -55,7 +54,7 @@ def populate():
         session.commit()
 
         for congress_num in congress_nums:
-            bills_pathspec = f"{root_pathspec}/{congress_num}/bills"
+            bills_pathspec = f"{data_dir}/{congress_num}/bills"
             datafiles = glob.glob("**/*.json", root_dir=bills_pathspec, recursive=True)
             for datafile in datafiles:
                 pathspec = f"{bills_pathspec}/{datafile}"

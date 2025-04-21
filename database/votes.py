@@ -72,7 +72,7 @@ def drop_table():
     VoteMeta.__table__.drop(engine)
 
 
-def populate():
+def populate(data_dir="data"):
     """
     Ingest votes and metadata.
 
@@ -80,10 +80,9 @@ def populate():
     them at the same time.
     """
 
-    root_pathspec = "data"
     congress_nums = [
         d.replace("./", "")
-        for d in glob.glob("./[0-9]*", root_dir=root_pathspec, recursive=False)
+        for d in glob.glob("./[0-9]*", root_dir=data_dir, recursive=False)
         if d.replace("./", "").isdigit()
     ]
 
@@ -96,11 +95,11 @@ def populate():
             years = [
                 y.replace("./", "")
                 for y in glob.glob(
-                    "./[0-9]*", root_dir=f"{root_pathspec}/{congress_num}/votes"
+                    "./[0-9]*", root_dir=f"{data_dir}/{congress_num}/votes"
                 )
             ]
             for year in years:
-                pathspec = f"{root_pathspec}/{congress_num}/votes/{year}"
+                pathspec = f"{data_dir}/{congress_num}/votes/{year}"
                 vote_files = glob.glob("**/*.json", root_dir=pathspec, recursive=True)
                 for vote_file in vote_files:
                     with open(f"{pathspec}/{vote_file}", "r", encoding="utf-8") as f:

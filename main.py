@@ -3,18 +3,10 @@ Main script to ingest data
 """
 
 import argparse
-from database.legislators import (
-    create_table as create_legislators_table,
-    populate as populate_legislators_table,
-)
-from database.bills import (
-    create_table as create_bills_table,
-    populate as populate_bills_table,
-)
-from database.votes import (
-    create_table as create_votes_table,
-    populate as populate_votes_table,
-)
+from database.bills import BillOrm
+from database.votes import VoteOrm
+from database.views import create_views
+from database.legislators import LegislatorOrm
 
 
 if __name__ == "__main__":
@@ -30,13 +22,21 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     print("Importing legislators...")
-    create_legislators_table()
-    populate_legislators_table(args.data_dir)
+    legis_orm = LegislatorOrm(args.data_dir)
+    legis_orm.create_table()
+    legis_orm.populate()
 
     print("Importing bills...")
-    create_bills_table()
-    populate_bills_table(args.data_dir)
+    bill_orm = BillOrm(args.data_dir)
+    bill_orm.create_table()
+    bill_orm.populate()
 
     print("Importing votes and vote metadata...")
-    create_votes_table()
-    populate_votes_table(args.data_dir)
+    vote_orm = VoteOrm(args.data_dir)
+    vote_orm.create_table()
+    vote_orm.populate()
+
+    print("Setting up views...")
+    create_views(args.data_dir)
+
+    print("Done!")

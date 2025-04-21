@@ -5,7 +5,7 @@ import json
 from dateutil import parser
 from database.base import Base, BaseOrm
 from sqlalchemy.orm import Session, relationship
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, text
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, inspect, text
 
 
 class VoteMeta(Base):
@@ -68,13 +68,19 @@ class VoteOrm(BaseOrm):
 
     def create_table(self):
         """Create the vote_meta and votes tables in the database."""
-        Vote.__table__.create(self.engine)
-        VoteMeta.__table__.create(self.engine)
+        if not inspect(self.engine).has_table(Vote.__tablename__):
+            Vote.__table__.create(self.engine)
+        
+        if not inspect(self.engine).has_table(VoteMeta.__tablename__):
+            VoteMeta.__table__.create(self.engine)
 
     def drop_table(self):
         """Drop the vote_meta and votes tables from the database."""
-        Vote.__table__.drop(self.engine)
-        VoteMeta.__table__.drop(self.engine)
+        if inspect(self.engine).has_table(Vote.__tablename__):
+            Vote.__table__.drop(self.engine)
+
+        if inspect(self.engine).has_table(VoteMeta.__tablename__):
+            VoteMeta.__table__.drop(self.engine)
 
     def populate(self):
         """

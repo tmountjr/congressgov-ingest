@@ -3,7 +3,7 @@
 import os
 import json
 from database.base import Base, BaseOrm
-from sqlalchemy import Column, String, text
+from sqlalchemy import Column, String, text, inspect
 from sqlalchemy.orm import Session
 
 
@@ -35,11 +35,13 @@ class LegislatorOrm(BaseOrm):
 
     def create_table(self):
         """Create the legislators table."""
-        Legislator.__table__.create(self.engine)
+        if not inspect(self.engine).has_table(Legislator.__tablename__):
+            Legislator.__table__.create(self.engine)
 
     def drop_table(self):
         """Drop the legislators table."""
-        Legislator.__table__.drop(self.engine)
+        if inspect(self.engine).has_table(Legislator.__tablename__):
+            Legislator.__table__.drop(self.engine)
 
     def populate(self):
         """Ingest legislators information."""

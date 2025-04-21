@@ -4,7 +4,7 @@ import glob
 import json
 from dateutil import parser
 from database.base import Base, BaseOrm
-from sqlalchemy import Column, String, ForeignKey, DateTime, text
+from sqlalchemy import Column, String, ForeignKey, DateTime, text, inspect
 from sqlalchemy.orm import Session, relationship
 
 
@@ -38,12 +38,14 @@ class BillOrm(BaseOrm):
 
     def create_table(self):
         """Create the bills table."""
-        Bill.__table__.create(self.engine)
+        if not inspect(self.engine).has_table(Bill.__tablename__):
+            Bill.__table__.create(self.engine)
 
 
     def drop_table(self):
         """Drop the bills table."""
-        Bill.__table__.drop(self.engine)
+        if inspect(self.engine).has_table(Bill.__tablename__):
+            Bill.__table__.drop(self.engine)
 
 
     def populate(self):

@@ -13,6 +13,7 @@ COPY ./requirements.txt /ingest/
 RUN pip install --no-cache-dir -r requirements.txt
 COPY ./database /ingest/database
 COPY ./main.py /ingest/
+RUN mkdir /ingest/data
 
 ENTRYPOINT [ "/entrypoint.sh" ]
 

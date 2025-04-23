@@ -91,7 +91,7 @@ class LegislatorOrm(BaseOrm):
                 try:
                     term = record.get("terms")[-1]
                     party_name = term.get("party", "None")
-                    party_shortname = party_name[0] if party_name[0] == "D" or party_name[0] == "R" else "-"
+                    party_shortname = party_name[0] if party_name[0] == "D" or party_name[0] == "R" or party_name[0] == "I" else "-"
                     legislator_id = record.get("id")
                     name_record = record.get("name")
                     name = name_record.get("official_full")

@@ -4,6 +4,7 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 from database.base import BaseOrm
 
+
 def create_views(data_dir):
     """Create views in the database."""
 
@@ -13,43 +14,99 @@ def create_views(data_dir):
         # Create a view that shows only the last vote on each vote ID.
         session.execute(text("DROP VIEW IF EXISTS latest_vote_ids"))
         session.execute(
-            text("""
+            text(
+                """
 CREATE VIEW latest_vote_ids as
-with temp_vm as (
-  select
-    *,
-    case
-      when bill_id = 'N/A'
-      then substr(nomination_title, 1, 10)
-      else bill_id
-    end as unique_matching_field
-  from vote_meta vm
-)
-
-select vm.*
-from temp_vm vm
-join (
-  select unique_matching_field, max(date) as latest_date
-  from temp_vm
-  group by unique_matching_field
-) latest_votes
-on
-  vm.unique_matching_field = latest_votes.unique_matching_field
-  and vm.date = latest_votes.latest_date"""
+WITH
+  temp_vm AS (
+    SELECT
+      vm_1.vote_number,
+      vm_1.vote_id,
+      vm_1.bill_id,
+      vm_1.chamber,
+      vm_1.date,
+      vm_1.result,
+      vm_1.category,
+      vm_1.nomination_title,
+      vm_1.source_filename,
+      CASE
+        WHEN (vm_1.bill_id IS NULL) THEN (
+          SUBSTRING(
+            vm_1.nomination_title
+            FROM
+              1 FOR 10
+          )
+        )::character varying
+        ELSE vm_1.bill_id
+      END AS unique_matching_field
+    FROM
+      vote_meta vm_1
+  )
+SELECT
+  vm.vote_number,
+  vm.vote_id,
+  vm.bill_id,
+  vm.chamber,
+  vm.date,
+  vm.result,
+  vm.category,
+  vm.nomination_title,
+  vm.source_filename,
+  vm.unique_matching_field
+FROM
+  (
+    temp_vm vm
+    JOIN (
+      SELECT
+        temp_vm.unique_matching_field,
+        max(temp_vm.date) AS latest_date
+      FROM
+        temp_vm
+      GROUP BY
+        temp_vm.unique_matching_field
+    ) latest_votes ON (
+      (
+        (
+          (vm.unique_matching_field)::text = (latest_votes.unique_matching_field)::text
+        )
+        AND (vm.date = latest_votes.latest_date)
+      )
+    )
+  );"""
             )
         )
 
         # Create a view that adds sponsor name and party to the vote_meta table.
         session.execute(text("DROP VIEW IF EXISTS enriched_vote_meta"))
         session.execute(
-            text("""
+            text(
+                """
 CREATE VIEW enriched_vote_meta as
-select
-  vote_meta.*,
-  legislators.name as sponsor_name,
-  legislators.party as sponsor_party
-from vote_meta
-left join bills on vote_meta.bill_id = bills.bill_id
-left join legislators on bills.sponsor_id = legislators.bioguide_id"""
+SELECT
+  vote_meta.vote_number,
+  vote_meta.vote_id,
+  vote_meta.bill_id,
+  vote_meta.chamber,
+  vote_meta.date,
+  vote_meta.result,
+  vote_meta.category,
+  vote_meta.nomination_title,
+  vote_meta.source_filename,
+  legislators.name AS sponsor_name,
+  legislators.party AS sponsor_party
+FROM
+  (
+    (
+      vote_meta
+      LEFT JOIN bills ON (
+        ((vote_meta.bill_id)::text = (bills.bill_id)::text)
+      )
+    )
+    LEFT JOIN legislators ON (
+      (
+        (bills.sponsor_id)::text = (legislators.bioguide_id)::text
+      )
+    )
+  );"""
             )
         )

@@ -2,7 +2,7 @@
 
 import os
 from dotenv import load_dotenv
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, MetaData
 from sqlalchemy.orm import declarative_base
 
 
@@ -18,3 +18,10 @@ class BaseOrm:
     def __init__(self, data_dir):
         self.data_dir = data_dir
         self.engine = create_engine(os.getenv("DATABASE_URL"))
+
+    def drop_all_tables(self):
+        """Drop all tables in the database, all at once."""
+
+        metadata = MetaData()
+        metadata.reflect(bind=self.engine)
+        metadata.drop_all(bind=self.engine)

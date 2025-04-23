@@ -36,17 +36,19 @@ class BillOrm(BaseOrm):
     def __init__(self, data_dir="./"):
         super().__init__(data_dir)
 
+    def drop_all_tables(self):
+        """Override to restrict dropping tables."""
+        raise NotImplementedError("This operation is not allowed in subclasses.")
+
     def create_table(self):
         """Create the bills table."""
         if not inspect(self.engine).has_table(Bill.__tablename__):
             Bill.__table__.create(self.engine)
 
-
     def drop_table(self):
         """Drop the bills table."""
         if inspect(self.engine).has_table(Bill.__tablename__):
             Bill.__table__.drop(self.engine)
-
 
     def populate(self):
         """Ingest bill information."""

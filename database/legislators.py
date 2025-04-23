@@ -35,6 +35,10 @@ class LegislatorOrm(BaseOrm):
     def __init__(self, data_dir="./"):
         super().__init__(data_dir)
 
+    def drop_all_tables(self):
+        """Override to restrict dropping tables."""
+        raise NotImplementedError("This operation is not allowed in subclasses.")
+
     def create_table(self):
         """Create the legislators table."""
         if not inspect(self.engine).has_table(Legislator.__tablename__):

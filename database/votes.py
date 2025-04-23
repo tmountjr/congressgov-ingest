@@ -62,6 +62,10 @@ class VoteOrm(BaseOrm):
     def __init__(self, data_dir="./"):
         super().__init__(data_dir)
 
+    def drop_all_tables(self):
+        """Override to restrict dropping tables."""
+        raise NotImplementedError("This operation is not allowed in subclasses.")
+
     def create_table(self):
         """Create the vote_meta and votes tables in the database."""
         if not inspect(self.engine).has_table(VoteMeta.__tablename__):

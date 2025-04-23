@@ -3,6 +3,7 @@ Main script to ingest data
 """
 
 import argparse
+from database.base import BaseOrm
 from database.bills import BillOrm
 from database.votes import VoteOrm
 from database.views import create_views
@@ -20,6 +21,10 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
+
+    print("Dropping all tables in preparation for data load...")
+    base_orm = BaseOrm(args.data_dir)
+    base_orm.drop_all_tables()
 
     print("Importing legislators...")
     legis_orm = LegislatorOrm(args.data_dir)

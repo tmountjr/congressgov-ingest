@@ -24,4 +24,6 @@ class BaseOrm:
 
         metadata = MetaData()
         metadata.reflect(bind=self.engine)
-        metadata.drop_all(bind=self.engine)
+        with self.engine.begin() as conn:
+            for tbl in reversed(metadata.sorted_tables):
+                conn.execute(tbl.delete())

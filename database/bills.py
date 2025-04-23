@@ -16,15 +16,15 @@ class Bill(Base):
     __tablename__ = "bills"
 
     bill_id = Column(String, primary_key=True)
-    bill_type = Column(String)
-    bill_number = Column(String)
-    title = Column(String)
+    bill_type = Column(String, nullable=False)
+    bill_number = Column(String, nullable=False)
+    title = Column(String, nullable=False)
     short_title = Column(String)
     sponsor_id = Column(String, ForeignKey("legislators.bioguide_id"))
-    status = Column(String)
-    status_at = Column(DateTime)
-    congress = Column(String)
-    source_filename = Column(String)
+    status = Column(String, nullable=False)
+    status_at = Column(DateTime, nullable=False)
+    congress = Column(String, nullable=False)
+    source_filename = Column(String, nullable=False)
 
     # Relationship to Legislators
     sponsor = relationship("Legislator")

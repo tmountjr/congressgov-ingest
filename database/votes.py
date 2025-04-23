@@ -13,19 +13,15 @@ class VoteMeta(Base):
 
     __tablename__ = "vote_meta"
 
-    vote_number = Column(Integer)
+    vote_number = Column(Integer, nullable=False)
     vote_id = Column(String, primary_key=True)
-    bill_id = Column(String, ForeignKey("bills.bill_id"))
-    chamber = Column(String)
-    date = Column(DateTime)
-    result = Column(String)
-    category = Column(String)
+    bill_id = Column(String, nullable=True)
+    chamber = Column(String, nullable=False)
+    date = Column(DateTime, nullable=False)
+    result = Column(String, nullable=False)
+    category = Column(String, nullable=False)
     nomination_title = Column(String)
-    source_filename = Column(String)
-
-    # Relationship to Bills
-    bill = relationship("Bill")
-
+    source_filename = Column(String, nullable=False)
 
 class Vote(Base):
     """
@@ -36,8 +32,8 @@ class Vote(Base):
 
     vote_id = Column(String, ForeignKey("vote_meta.vote_id"), primary_key=True)
     legislator_id = Column(String, ForeignKey("legislators.id"), primary_key=True)
-    position = Column(String)
-    original_position = Column(String)
+    position = Column(String, nullable=False)
+    original_position = Column(String, nullable=False)
 
     # Relationships
     legislator = relationship("Legislator")
@@ -68,11 +64,11 @@ class VoteOrm(BaseOrm):
 
     def create_table(self):
         """Create the vote_meta and votes tables in the database."""
-        if not inspect(self.engine).has_table(Vote.__tablename__):
-            Vote.__table__.create(self.engine)
-        
         if not inspect(self.engine).has_table(VoteMeta.__tablename__):
             VoteMeta.__table__.create(self.engine)
+
+        if not inspect(self.engine).has_table(Vote.__tablename__):
+            Vote.__table__.create(self.engine)
 
     def drop_table(self):
         """Drop the vote_meta and votes tables from the database."""
@@ -127,7 +123,7 @@ class VoteOrm(BaseOrm):
                             b_congress = bill_info.get("congress")
                             bill_id = f"{b_type}{b_number}-{b_congress}"
                         else:
-                            bill_id = "N/A"
+                            bill_id = None
                         chamber = data.get("chamber")
                         is_nomination = "nomination" in data
                         nomination_title = (
@@ -169,7 +165,9 @@ class VoteOrm(BaseOrm):
                                         if chamber == "s"
                                         else legislator_bid
                                     )
-                                    normalized_response = NORMALIZE_RESPONSES.get(response, response)
+                                    normalized_response = NORMALIZE_RESPONSES.get(
+                                        response, response
+                                    )
 
                                     vote = Vote(
                                         vote_id=vote_id,

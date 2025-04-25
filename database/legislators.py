@@ -27,7 +27,7 @@ class Legislator(Base):
     url = Column(String)
     address = Column(String)
     phone = Column(String)
-    caucus = Column(String)
+    caucus = Column(String, nullable=False)
 
 
 class LegislatorOrm(BaseOrm):

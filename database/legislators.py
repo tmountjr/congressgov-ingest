@@ -27,6 +27,7 @@ class Legislator(Base):
     url = Column(String)
     address = Column(String)
     phone = Column(String)
+    caucus = Column(String)
 
 
 class LegislatorOrm(BaseOrm):
@@ -99,6 +100,7 @@ class LegislatorOrm(BaseOrm):
                         or party_name[0] == "I"
                         else "-"
                     )
+                    caucus = term.get("caucus", party_shortname)[0]
                     legislator_id = record.get("id")
                     name_record = record.get("name")
                     name = name_record.get("official_full")
@@ -121,6 +123,7 @@ class LegislatorOrm(BaseOrm):
                         url=term.get("url"),
                         address=term.get("address"),
                         phone=term.get("phone"),
+                        caucus=caucus,
                     )
                 except TypeError as e:
                     print(f"Error processing record: {record}")

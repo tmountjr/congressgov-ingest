@@ -23,12 +23,6 @@ if __name__ == "__main__":
         help="Directory containing the data (default: 'data')",
     )
     parser.add_argument(
-        "--dataset",
-        default="all",
-        type=str,
-        help="Dataset to import (default: 'all')",
-    )
-    parser.add_argument(
         "--environment",
         default="prod",
         type=str,
@@ -43,41 +37,30 @@ if __name__ == "__main__":
         base_env.update(override_env)
     os.environ.update(base_env)
 
-    datasets = (
-        ["legislators", "bills", "votes", "amendments"]
-        if args.dataset == "all"
-        else args.dataset.split(",")
-    )
+    print("Dropping all tables in preparation for data load...")
+    base_orm = BaseOrm(args.data_dir)
+    base_orm.drop_all_tables()
 
-    if args.dataset == "all":
-        print("Dropping all tables in preparation for data load...")
-        base_orm = BaseOrm(args.data_dir)
-        base_orm.drop_all_tables()
+    print("Importing legislators...")
+    legis_orm = LegislatorOrm(args.data_dir)
+    legis_orm.fetch_list()
+    legis_orm.create_table()
+    legis_orm.populate()
 
-    if "legislators" in datasets:
-        print("Importing legislators...")
-        legis_orm = LegislatorOrm(args.data_dir)
-        legis_orm.fetch_list()
-        legis_orm.create_table()
-        legis_orm.populate()
+    print("Importing bills...")
+    bill_orm = BillOrm(args.data_dir)
+    bill_orm.create_table()
+    bill_orm.populate()
 
-    if "bills" in datasets:
-        print("Importing bills...")
-        bill_orm = BillOrm(args.data_dir)
-        bill_orm.create_table()
-        bill_orm.populate()
+    print("Importing votes and vote metadata...")
+    vote_orm = VoteOrm(args.data_dir)
+    vote_orm.create_table()
+    vote_orm.populate()
 
-    if "votes" in datasets:
-        print("Importing votes and vote metadata...")
-        vote_orm = VoteOrm(args.data_dir)
-        vote_orm.create_table()
-        vote_orm.populate()
-
-    if "amendments" in datasets:
-        print("Importing amendments...")
-        amend_orm = AmendmentOrm(args.data_dir)
-        amend_orm.create_table()
-        amend_orm.populate()
+    print("Importing amendments...")
+    amend_orm = AmendmentOrm(args.data_dir)
+    amend_orm.create_table()
+    amend_orm.populate()
 
     print("Setting up views...")
     # TODO: what's interesting here is that when running for the first time,

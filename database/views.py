@@ -110,3 +110,5 @@ FROM
   );"""
             )
         )
+
+        session.commit()

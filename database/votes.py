@@ -149,10 +149,12 @@ class VoteOrm(BaseOrm):
                             congress = str(data.get("congress"))
                             # Senate amendments are straightforward.
                             # House ones not so much. When the type = "h-bill":
-                            #   - the number is the amendment number _to that bill_, not the amendment id number
-                            #   - you have to go back to the bill itself, to the "amendments" key, reverse the array
-                            #     so the first amendment is index 0, then find the nth amendment, then get the
-                            #     amendment_id from there
+                            #   - the number is the amendment number _to that
+                            #     bill_, not the amendment id number
+                            #   - you have to go back to the bill itself, to the
+                            #     "amendments" key, reverse the array so the first
+                            #     amendment is index 0, then find the nth
+                            #     amendment, then get the amendment_id from there
 
                             if amendment_type in ("s", "h"):
                                 amendment_id = (

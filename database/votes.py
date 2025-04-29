@@ -1,5 +1,6 @@
 """Maintain and load data for `vote_meta` and `votes` tables."""
 
+import os
 import glob
 import json
 from dateutil import parser
@@ -21,7 +22,11 @@ class VoteMeta(Base):
     result = Column(String, nullable=False)
     category = Column(String, nullable=False)
     nomination_title = Column(String)
+    amendment_id = Column(String, ForeignKey("amendments.amendment_id"), nullable=True)
     source_filename = Column(String, nullable=False)
+
+    amendment = relationship("Amendment")
+
 
 class Vote(Base):
     """
@@ -135,6 +140,48 @@ class VoteOrm(BaseOrm):
                             if not is_nomination
                             else data.get("nomination").get("title")
                         )
+                        amendment = data.get("amendment")
+                        amendment_id = None  # and we'll override it if we can.
+
+                        if amendment:
+                            amendment_number = amendment.get("number")
+                            amendment_type = amendment.get("type")
+                            congress = str(data.get("congress"))
+                            # Senate amendments are straightforward.
+                            # House ones not so much. When the type = "h-bill":
+                            #   - the number is the amendment number _to that bill_, not the amendment id number
+                            #   - you have to go back to the bill itself, to the "amendments" key, reverse the array
+                            #     so the first amendment is index 0, then find the nth amendment, then get the
+                            #     amendment_id from there
+
+                            if amendment_type in ("s", "h"):
+                                amendment_id = (
+                                    f"{amendment_type}amdt{amendment_number}-{congress}"
+                                )
+                            elif amendment_type == "h-bill":
+                                obd = data.get("bill")
+                                obd_type = obd.get("type")
+                                bill_number = (
+                                    f"{obd_type}{obd.get("number")}"  # eg. hr1048
+                                )
+                                bill_pathspec = os.path.join(
+                                    self.data_dir,
+                                    str(congress),
+                                    "bills",
+                                    obd_type,
+                                    str(bill_number),
+                                    "data.json",
+                                )
+                                if os.path.exists(bill_pathspec):
+                                    with open(
+                                        bill_pathspec, "r", encoding="utf-8"
+                                    ) as bill_f:
+                                        bill_data = json.loads(bill_f.read())
+                                    bill_amendments = bill_data.get("amendments", [])
+                                    if bill_amendments:
+                                        amendment_id = bill_amendments[
+                                            -1 * int(amendment_number)
+                                        ].get("amendment_id")
 
                         vote_meta = VoteMeta(
                             vote_number=data.get("number"),
@@ -145,6 +192,7 @@ class VoteOrm(BaseOrm):
                             result=data.get("result_text"),
                             category=data.get("category").strip(),
                             nomination_title=nomination_title,
+                            amendment_id=amendment_id,
                             source_filename=vote_file,
                         )
                         # Add to session

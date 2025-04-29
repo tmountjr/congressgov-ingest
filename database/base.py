@@ -1,12 +1,9 @@
 """Define base methods for working with the database."""
 
 import os
-from dotenv import load_dotenv
 from sqlalchemy import create_engine, MetaData
 from sqlalchemy.orm import declarative_base
 
-
-load_dotenv()
 
 # Declarative base
 Base = declarative_base()

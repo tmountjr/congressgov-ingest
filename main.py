@@ -2,11 +2,14 @@
 Main script to ingest data
 """
 
+import os
 import argparse
+from dotenv import dotenv_values
 from database.base import BaseOrm
 from database.bills import BillOrm
 from database.votes import VoteOrm
 from database.views import create_views
+from database.amendments import AmendmentOrm
 from database.legislators import LegislatorOrm
 
 
@@ -19,30 +22,66 @@ if __name__ == "__main__":
         default="data",
         help="Directory containing the data (default: 'data')",
     )
+    parser.add_argument(
+        "--dataset",
+        default="all",
+        type=str,
+        help="Dataset to import (default: 'all')",
+    )
+    parser.add_argument(
+        "--environment",
+        default="prod",
+        type=str,
+        help="The environment to use (default: 'prod')",
+    )
 
     args = parser.parse_args()
 
-    print("Dropping all tables in preparation for data load...")
-    base_orm = BaseOrm(args.data_dir)
-    base_orm.drop_all_tables()
+    base_env = dotenv_values(".env")
+    if args.environment != "prod":
+        override_env = dotenv_values(f".env.{args.environment}")
+        base_env.update(override_env)
+    os.environ.update(base_env)
 
-    print("Importing legislators...")
-    legis_orm = LegislatorOrm(args.data_dir)
-    legis_orm.fetch_list()
-    legis_orm.create_table()
-    legis_orm.populate()
+    datasets = (
+        ["legislators", "bills", "votes", "amendments"]
+        if args.dataset == "all"
+        else args.dataset.split(",")
+    )
 
-    print("Importing bills...")
-    bill_orm = BillOrm(args.data_dir)
-    bill_orm.create_table()
-    bill_orm.populate()
+    if args.dataset == "all":
+        print("Dropping all tables in preparation for data load...")
+        base_orm = BaseOrm(args.data_dir)
+        base_orm.drop_all_tables()
 
-    print("Importing votes and vote metadata...")
-    vote_orm = VoteOrm(args.data_dir)
-    vote_orm.create_table()
-    vote_orm.populate()
+    if "legislators" in datasets:
+        print("Importing legislators...")
+        legis_orm = LegislatorOrm(args.data_dir)
+        legis_orm.fetch_list()
+        legis_orm.create_table()
+        legis_orm.populate()
+
+    if "bills" in datasets:
+        print("Importing bills...")
+        bill_orm = BillOrm(args.data_dir)
+        bill_orm.create_table()
+        bill_orm.populate()
+
+    if "votes" in datasets:
+        print("Importing votes and vote metadata...")
+        vote_orm = VoteOrm(args.data_dir)
+        vote_orm.create_table()
+        vote_orm.populate()
+
+    if "amendments" in datasets:
+        print("Importing amendments...")
+        amend_orm = AmendmentOrm(args.data_dir)
+        amend_orm.create_table()
+        amend_orm.populate()
 
     print("Setting up views...")
+    # TODO: what's interesting here is that when running for the first time,
+    # no views were created.
     create_views(args.data_dir)
 
     print("Done!")

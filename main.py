@@ -52,15 +52,15 @@ if __name__ == "__main__":
     bill_orm.create_table()
     bill_orm.populate()
 
-    print("Importing votes and vote metadata...")
-    vote_orm = VoteOrm(args.data_dir)
-    vote_orm.create_table()
-    vote_orm.populate()
-
     print("Importing amendments...")
     amend_orm = AmendmentOrm(args.data_dir)
     amend_orm.create_table()
     amend_orm.populate()
+
+    print("Importing votes and vote metadata...")
+    vote_orm = VoteOrm(args.data_dir)
+    vote_orm.create_table()
+    vote_orm.populate()
 
     print("Setting up views...")
     # TODO: what's interesting here is that when running for the first time,

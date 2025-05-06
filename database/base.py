@@ -19,7 +19,7 @@ class BaseOrm:
     def drop_all_tables(self):
         """Drop all tables in the database, all at once."""
 
-        metadata = MetaData()
+        metadata = MetaData(schema="public")
         metadata.reflect(bind=self.engine)
         with self.engine.begin() as conn:
             for tbl in reversed(metadata.sorted_tables):

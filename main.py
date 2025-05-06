@@ -9,6 +9,7 @@ from database.base import BaseOrm
 from database.bills import BillOrm
 from database.votes import VoteOrm
 from database.views import create_views
+from database.site_meta import SiteMetaOrm
 from database.amendments import AmendmentOrm
 from database.legislators import LegislatorOrm
 
@@ -66,5 +67,11 @@ if __name__ == "__main__":
     # TODO: what's interesting here is that when running for the first time,
     # no views were created.
     create_views(args.data_dir)
+
+    # Update the database with the latest update time
+    print("Updating site metadata...")
+    site_meta_orm = SiteMetaOrm()
+    site_meta_orm.create_table()
+    site_meta_orm.set_last_update()
 
     print("Done!")

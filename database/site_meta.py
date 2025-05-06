@@ -14,7 +14,7 @@ class SiteMeta(Base):
     __table_args__ = {"schema": "site_meta"}
 
     last_update = Column(DateTime, primary_key=True)
-    tz = Column(String(500))
+    tz = Column(String(500), nullable=False)
 
 
 class SiteMetaOrm(BaseOrm):

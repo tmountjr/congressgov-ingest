@@ -9,6 +9,7 @@ from database.base import BaseOrm
 from database.bills import BillOrm
 from database.votes import VoteOrm
 from database.views import create_views
+from database.congress import CongressOrm
 from database.site_meta import SiteMetaOrm
 from database.amendments import AmendmentOrm
 from database.legislators import LegislatorOrm
@@ -62,6 +63,11 @@ if __name__ == "__main__":
     vote_orm = VoteOrm(args.data_dir)
     vote_orm.create_table()
     vote_orm.populate()
+
+    print("Importing Congress session metadata...")
+    congress_orm = CongressOrm(args.data_dir)
+    congress_orm.create_table()
+    congress_orm.populate()
 
     print("Setting up views...")
     # TODO: what's interesting here is that when running for the first time,

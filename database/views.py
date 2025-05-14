@@ -99,6 +99,14 @@ SELECT
   END AS sponsor_name,
   CASE
     WHEN (
+      (vote_meta.amendment_id IS NOT NULL)
+      AND (amendments.sponsor_id IS NOT NULL)
+    ) THEN a_sponsor.party
+    WHEN (
+      (vote_meta.amendment_id IS NOT NULL)
+      AND (amendments.sponsor_id IS NULL)
+    ) THEN 'R'::character varying
+    WHEN (
       (vote_meta.category)::text = ANY (
         (
           ARRAY[
@@ -113,14 +121,6 @@ SELECT
     WHEN (
       ((vote_meta.category)::text = 'cloture'::text)
       AND (vote_meta.nomination_title IS NOT NULL)
-    ) THEN 'R'::character varying
-    WHEN (
-      (vote_meta.amendment_id IS NOT NULL)
-      AND (amendments.sponsor_id IS NOT NULL)
-    ) THEN a_sponsor.party
-    WHEN (
-      (vote_meta.amendment_id IS NOT NULL)
-      AND (amendments.sponsor_id IS NULL)
     ) THEN 'R'::character varying
     ELSE b_sponsor.party
   END AS sponsor_party

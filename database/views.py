@@ -105,7 +105,7 @@ SELECT
     WHEN (
       (vote_meta.amendment_id IS NOT NULL)
       AND (amendments.sponsor_id IS NULL)
-    ) THEN 'R'::character varying
+    ) THEN congress.party
     WHEN (
       (vote_meta.category)::text = ANY (
         (
@@ -117,11 +117,11 @@ SELECT
           ]
         )::text[]
       )
-    ) THEN 'R'::character varying
+    ) THEN congress.party
     WHEN (
       ((vote_meta.category)::text = 'cloture'::text)
       AND (vote_meta.nomination_title IS NOT NULL)
-    ) THEN 'R'::character varying
+    ) THEN congress.party
     ELSE b_sponsor.party
   END AS sponsor_party
 FROM
@@ -129,26 +129,38 @@ FROM
     (
       (
         (
-          vote_meta
-          LEFT JOIN bills ON (
-            ((vote_meta.bill_id)::text = (bills.bill_id)::text)
-          )
-        )
-        LEFT JOIN amendments ON (
           (
-            (vote_meta.amendment_id)::text = (amendments.amendment_id)::text
+            vote_meta
+            LEFT JOIN bills USING (bill_id)
+          )
+          LEFT JOIN amendments USING (amendment_id)
+        )
+        LEFT JOIN legislators a_sponsor ON (
+          (
+            (amendments.sponsor_id)::text = (a_sponsor.bioguide_id)::text
           )
         )
       )
-      LEFT JOIN legislators a_sponsor ON (
+      LEFT JOIN legislators b_sponsor ON (
         (
-          (amendments.sponsor_id)::text = (a_sponsor.bioguide_id)::text
+          (bills.sponsor_id)::text = (b_sponsor.bioguide_id)::text
         )
       )
     )
-    LEFT JOIN legislators b_sponsor ON (
+    LEFT JOIN congress ON (
       (
-        (bills.sponsor_id)::text = (b_sponsor.bioguide_id)::text
+        (
+          (vote_meta.chamber)::text = (congress.chamber)::text
+        )
+        AND (
+          (vote_meta.date >= congress.start_date)
+          AND (
+            vote_meta.date <= COALESCE(
+              congress.end_date,
+              '9999-12-31 00:00:00'::timestamp without time zone
+            )
+          )
+        )
       )
     )
   )

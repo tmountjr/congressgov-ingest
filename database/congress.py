@@ -6,7 +6,7 @@ import json
 import string
 import requests
 from database.base import Base, BaseOrm
-from sqlalchemy import Column, DateTime, Integer, String, inspect
+from sqlalchemy import Column, DateTime, Integer, String, inspect, text
 from sqlalchemy.orm import Session
 
 API_KEY = os.environ.get("CONGRESS_API_KEY")
@@ -61,38 +61,52 @@ class CongressOrm(BaseOrm):
         ]
 
         with Session(self.engine) as session:
-            # session.execute(text(f"DELETE from {Congress.__tablename__}"))
-            # session.commit()
-
             for congress_num in congress_nums:
                 print(f"Fetching information for Congress # {congress_num}...")
                 congress_data = requests.get(
                     API_URL.substitute(num=congress_num), timeout=10
                 )
                 if congress_data.status_code == 200:
+
                     data = json.loads(congress_data.text)
                     congress_data = data.get("congress")
 
-                    for s in congress_data.get("sessions", []):
-                        chamber_raw = s.get("chamber")
-                        chamber = "s" if chamber_raw.lower() == "senate" else "h"
-
-                        this_session = s.get("number")
-                        party = s.get("type")
-                        start_date = s.get("startDate")
-                        end_date = s.get("endDate", None)
-
-                        this_congress = Congress(
-                            congress=congress_num,
-                            chamber=chamber,
-                            session=this_session,
-                            party=party,
-                            start_date=start_date,
-                            end_date=end_date,
+                    sessions = congress_data.get("sessions", [])
+                    if len(sessions) > 0:
+                        # Only clear previous information if the api call was a success.
+                        session.execute(
+                            text(
+                                f"DELETE FROM {Congress.__tablename__} WHERE congress = :congress"
+                            ),
+                            params={"congress": congress_num},
                         )
 
-                        # Add to db session for each session of congress found
-                        session.add(this_congress)
+                        for s in congress_data.get("sessions", []):
+                            chamber_raw = s.get("chamber")
+                            chamber = "s" if chamber_raw.lower() == "senate" else "h"
+
+                            this_session = s.get("number")
+                            party = s.get("type")
+                            start_date = s.get("startDate")
+                            end_date = s.get("endDate", None)
+
+                            this_congress = Congress(
+                                congress=congress_num,
+                                chamber=chamber,
+                                session=this_session,
+                                party=party,
+                                start_date=start_date,
+                                end_date=end_date,
+                            )
+
+                            # Add to db session for each session of congress found
+                            session.add(this_congress)
+                    else:
+                        print("No data found for Congress {congress_num}. Skipping.")
+                else:
+                    print(
+                        f"Failed to fetch data for Congress {congress_num}. Status code: {congress_data.status_code}"
+                    )
 
             # Commit everything once we have all the sessions needed.
             session.commit()

@@ -5,8 +5,9 @@ import json
 from string import Template
 import requests
 from database.base import Base, BaseOrm
-from sqlalchemy import Column, String, text, inspect
+from sqlalchemy import Column, String, select, text, inspect
 from sqlalchemy.orm import Session
+from sqlalchemy.sql import functions
 
 
 class Legislator(Base):
@@ -135,3 +136,9 @@ class LegislatorOrm(BaseOrm):
 
             # Commit changes to the database
             session.commit()
+
+    def get_count(self):
+        """Count the number of legislator entries."""
+        with Session(self.engine) as session:
+            statement = select(functions.count(1)).select_from(Legislator)
+            return session.execute(statement).scalar()

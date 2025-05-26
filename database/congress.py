@@ -6,7 +6,8 @@ import json
 import string
 import requests
 from database.base import Base, BaseOrm
-from sqlalchemy import Column, DateTime, Integer, String, inspect, text
+from sqlalchemy import Column, DateTime, Integer, String, inspect, text, select
+from sqlalchemy.sql import functions
 from sqlalchemy.orm import Session
 
 API_KEY = os.environ.get("CONGRESS_API_KEY")
@@ -110,3 +111,15 @@ class CongressOrm(BaseOrm):
 
             # Commit everything once we have all the sessions needed.
             session.commit()
+
+    def get_count(self, congress_num):
+        """
+        Get count of records in Congress table matching a specific congress_num.
+        """
+        with Session(self.engine) as session:
+            statement = (
+                select(functions.count())
+                    .select_from(Congress)
+                    .where(Congress.congress == str(congress_num))
+            )
+            return session.execute(statement).scalar()

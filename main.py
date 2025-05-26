@@ -16,6 +16,8 @@ from database.legislators import LegislatorOrm
 
 
 if __name__ == "__main__":
+    from sanity_check import SanityCheck
+
     # Check if we've passed "data_dir=" to the script, and if so, use it in the
     # populate methods.
     parser = argparse.ArgumentParser()
@@ -79,5 +81,9 @@ if __name__ == "__main__":
     site_meta_orm = SiteMetaOrm()
     site_meta_orm.create_table()
     site_meta_orm.set_last_update()
+
+    print("Running sanity checks...")
+    checker = SanityCheck(119, args.data_dir)
+    checker.run()
 
     print("Done!")

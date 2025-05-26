@@ -6,7 +6,17 @@ import json
 from dateutil import parser
 from database.base import Base, BaseOrm
 from sqlalchemy.orm import Session, relationship
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, inspect, text
+from sqlalchemy.sql import functions
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    DateTime,
+    ForeignKey,
+    inspect,
+    text,
+    select,
+)
 
 
 class VoteMeta(Base):
@@ -236,3 +246,9 @@ class VoteOrm(BaseOrm):
 
             # Commit changes
             session.commit()
+
+    def get_count(self):
+        """Count the number of vote metadata entries."""
+        with Session(self.engine) as session:
+            statement = select(functions.count(1)).select_from(VoteMeta)
+            return session.execute(statement).scalar()

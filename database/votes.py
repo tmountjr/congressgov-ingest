@@ -247,8 +247,10 @@ class VoteOrm(BaseOrm):
             # Commit changes
             session.commit()
 
-    def get_count(self):
+    def get_count(self, congress_num: int | None = None):
         """Count the number of vote metadata entries."""
         with Session(self.engine) as session:
             statement = select(functions.count(1)).select_from(VoteMeta)
+            if congress_num is not None:
+                statement = statement.where(VoteMeta.vote_id.like(f"%-{congress_num}.%"))
             return session.execute(statement).scalar()

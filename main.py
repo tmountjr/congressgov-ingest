@@ -83,7 +83,7 @@ if __name__ == "__main__":
     site_meta_orm.set_last_update()
 
     print("Running sanity checks...")
-    checker = SanityCheck(119, args.data_dir)
+    checker = SanityCheck(args.data_dir)
     checker.run()
 
     print("Done!")

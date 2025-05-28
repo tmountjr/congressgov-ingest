@@ -1,4 +1,5 @@
 import os
+import re
 import json
 from pathlib import Path
 
@@ -20,3 +21,8 @@ def count_legislators(data_dir):
     with open(path / "legislators.json", "r", encoding="utf-8") as f:
         data = json.loads(f.read())
         return len(data)
+
+def downloaded_sessions(data_dir):
+    """Return a List of the sessions for which we have metadata."""
+    path = Path(data_dir)
+    return [int(d.name) for d in path.iterdir() if d.is_dir() and re.match(r"^\d+$", d.name)]

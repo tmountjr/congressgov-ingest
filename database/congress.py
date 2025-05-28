@@ -64,9 +64,8 @@ class CongressOrm(BaseOrm):
         with Session(self.engine) as session:
             for congress_num in congress_nums:
                 print(f"Fetching information for Congress # {congress_num}...")
-                congress_data = requests.get(
-                    API_URL.substitute(num=congress_num), timeout=10
-                )
+                url = API_URL.substitute(num=congress_num)
+                congress_data = requests.get(url, timeout=10)
                 if congress_data.status_code == 200:
 
                     data = json.loads(congress_data.text)
@@ -81,6 +80,7 @@ class CongressOrm(BaseOrm):
                             ),
                             params={"congress": congress_num},
                         )
+                        session.commit()
 
                         for s in congress_data.get("sessions", []):
                             chamber_raw = s.get("chamber")
@@ -108,6 +108,7 @@ class CongressOrm(BaseOrm):
                     print(
                         f"Failed to fetch data for Congress {congress_num}. Status code: {congress_data.status_code}"
                     )
+                    print(f"URL used: {url}")
 
             # Commit everything once we have all the sessions needed.
             session.commit()

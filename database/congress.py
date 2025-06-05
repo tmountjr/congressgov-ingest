@@ -1,19 +1,13 @@
 """Maintain and load data for `congress` table."""
 
-import os
 import glob
 import json
-import string
+import os
 import requests
 from database.base import Base, BaseOrm
 from sqlalchemy import Column, DateTime, Integer, String, inspect, text, select
 from sqlalchemy.sql import functions
 from sqlalchemy.orm import Session
-
-API_KEY = os.environ.get("CONGRESS_API_KEY")
-API_URL = string.Template(
-    f"https://api.congress.gov/v3/congress/$num?format=json&api_key={API_KEY}"
-)
 
 
 class Congress(Base):
@@ -52,66 +46,21 @@ class CongressOrm(BaseOrm):
     def populate(self):
         """Ingest congress information."""
 
-        # Rather than look at command line arguments, rely on what congresses have
-        # already been imported, and get information for those sessions instead.
+        metadata_path = os.path.join(self.data_dir, "congress.json")
+        with open(metadata_path, "r", encoding="utf-8") as f:
+            metadata = json.loads(f.read())
+            if len(metadata) > 0:
+                with Session(self.engine) as session:
+                    session.execute(text(f"DELETE FROM {Congress.__tablename__}"))
+                    session.commit()
 
-        congress_nums = [
-            d.replace("./", "")
-            for d in glob.glob("./[0-9]*", root_dir=self.data_dir, recursive=False)
-            if d.replace("./", "", 1).isdigit()
-        ]
+                    for item in metadata:
+                        c = Congress(**item)
+                        session.add(c)
 
-        with Session(self.engine) as session:
-            for congress_num in congress_nums:
-                print(f"Fetching information for Congress # {congress_num}...")
-                url = API_URL.substitute(num=congress_num)
-                congress_data = requests.get(url, timeout=10)
-                if congress_data.status_code == 200:
-
-                    data = json.loads(congress_data.text)
-                    congress_data = data.get("congress")
-
-                    sessions = congress_data.get("sessions", [])
-                    if len(sessions) > 0:
-                        # Only clear previous information if the api call was a success.
-                        session.execute(
-                            text(
-                                f"DELETE FROM {Congress.__tablename__} WHERE congress = :congress"
-                            ),
-                            params={"congress": congress_num},
-                        )
-                        session.commit()
-
-                        for s in congress_data.get("sessions", []):
-                            chamber_raw = s.get("chamber")
-                            chamber = "s" if chamber_raw.lower() == "senate" else "h"
-
-                            this_session = s.get("number")
-                            party = s.get("type")
-                            start_date = s.get("startDate")
-                            end_date = s.get("endDate", None)
-
-                            this_congress = Congress(
-                                congress=congress_num,
-                                chamber=chamber,
-                                session=this_session,
-                                party=party,
-                                start_date=start_date,
-                                end_date=end_date,
-                            )
-
-                            # Add to db session for each session of congress found
-                            session.add(this_congress)
-                    else:
-                        print("No data found for Congress {congress_num}. Skipping.")
-                else:
-                    print(
-                        f"Failed to fetch data for Congress {congress_num}. Status code: {congress_data.status_code}"
-                    )
-                    print(f"URL used: {url}")
-
-            # Commit everything once we have all the sessions needed.
-            session.commit()
+                    session.commit()
+            else:
+                print("Congress metadata not found. Skipping.")
 
     def get_count(self, congress_num):
         """
@@ -120,7 +69,7 @@ class CongressOrm(BaseOrm):
         with Session(self.engine) as session:
             statement = (
                 select(functions.count())
-                    .select_from(Congress)
-                    .where(Congress.congress == str(congress_num))
+                .select_from(Congress)
+                .where(Congress.congress == str(congress_num))
             )
             return session.execute(statement).scalar()

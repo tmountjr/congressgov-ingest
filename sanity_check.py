@@ -2,6 +2,7 @@
 
 import argparse
 from shared_meta import count_votes, downloaded_sessions
+from stdout_logger import StdoutLogger
 from database.votes import VoteOrm
 from database.congress import CongressOrm
 from database.legislators import LegislatorOrm
@@ -27,12 +28,20 @@ class SanityCheck:
         self.congress_nums = (
             congress_nums if len(congress_nums) > 0 else downloaded_sessions(data_dir)
         )
-        self.color_yes = (
+        color_yes = (
             f"{COLORS.get("OKGREEN") + COLORS.get("BOLD")}yes{COLORS.get("ENDC")}"
         )
-        self.color_no = (
-            f"{COLORS.get("FAIL") + COLORS.get("BOLD")}no{COLORS.get("ENDC")}"
-        )
+        color_no = f"{COLORS.get("FAIL") + COLORS.get("BOLD")}no{COLORS.get("ENDC")}"
+        self.logger = StdoutLogger(__name__)
+
+        self.passes_sanity_check_message = f"[%s] Passes sanity check: {color_yes}"
+        self.fails_sanity_check_message = f"[%s] Passes sanity check: {color_no}"
+
+    def _print_pass_fail(self, pass_fail: bool, congress_num: str):
+        if pass_fail:
+            self.logger.info(self.passes_sanity_check_message, congress_num)
+        else:
+            self.logger.warning(self.fails_sanity_check_message, congress_num)
 
     def _run_vote_sanity_check(self):
         """
@@ -46,11 +55,13 @@ class SanityCheck:
             expected_vote_count = count_votes(congress_num, self.data_dir)
             actual_vote_count = vote_orm.get_count(congress_num)
             pass_fail = actual_vote_count == expected_vote_count
-            print(f"[{congress_num}] Expected vote count: {expected_vote_count}")
-            print(f"[{congress_num}] Actual vote count: {actual_vote_count}")
-            print(
-                f"[{congress_num}] Passes sanity check: {self.color_yes if pass_fail else self.color_no}"
+            self.logger.info(
+                "[%s] Expected vote count: %s", congress_num, expected_vote_count
             )
+            self.logger.info(
+                "[%s] Actual vote count: %s", congress_num, actual_vote_count
+            )
+            self._print_pass_fail(pass_fail, congress_num)
             print("")
 
     def _run_legislator_sanity_check(self):
@@ -62,8 +73,8 @@ class SanityCheck:
         actual_legislator_count = legislator_orm.get_count()
         pass_fail = actual_legislator_count >= 535
 
-        print(f"Actual legislator count: {actual_legislator_count}")
-        print(f"Passes sanity check: {self.color_yes if pass_fail else self.color_no}")
+        self.logger.info("Actual legislator count: %s", actual_legislator_count)
+        self._print_pass_fail(pass_fail, "n/a")
         print("")
 
     def _run_congress_sanity_check(self):
@@ -77,10 +88,10 @@ class SanityCheck:
         for congress_num in self.congress_nums:
             actual_congress_count = congress_orm.get_count(congress_num)
             pass_fail = actual_congress_count in (2, 4)
-            print(f"[{congress_num}] Checking Congress {congress_num} metadata...")
-            print(
-                f"[{congress_num}] Passes sanity check: {self.color_yes if pass_fail else self.color_no}"
+            self.logger.info(
+                "[%s] Checking Congress %s metadata...", congress_num, congress_num
             )
+            self._print_pass_fail(pass_fail, congress_num)
             print("")
 
     def run(self):

@@ -8,6 +8,7 @@ COPY database ./database
 COPY main.py .
 COPY shared_meta.py .
 COPY sanity_check.py .
+COPY stdout_logger.py .
 
 ENTRYPOINT [ "python", "main.py" ]
 

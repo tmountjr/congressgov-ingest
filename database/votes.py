@@ -303,9 +303,6 @@ class VoteOrm(BaseOrm):
 
             # Commit changes
             # Push the vote_meta entries and commit.
-            print(
-                f"Parsed {len(vote_meta_entries)} vote_meta entries and {len(vote_entries)} vote entries."
-            )
             for vote_meta_entry in vote_meta_entries:
                 self.upsert_vote_meta(session, vote_meta_entry)
             session.commit()

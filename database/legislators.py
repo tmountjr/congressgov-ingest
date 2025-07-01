@@ -83,6 +83,23 @@ class LegislatorOrm(BaseOrm):
             session.execute(text(f"DELETE FROM {Legislator.__tablename__}"))
             session.commit()
 
+            # Add a placeholder legislator.
+            placeholder = Legislator(
+                bioguide_id = "P000000",
+                lis_id=None,
+                id="P000000",
+                name="Placeholder",
+                term_type="rep",
+                state="NA",
+                district="N/A",
+                party="I",
+                url=None,
+                address=None,
+                phone=None,
+                caucus="-"
+            )
+            session.add(placeholder)
+
             for record in data:
                 # We should arbitrarily cut off anyone whose final term in office started pre-2010.
                 final_term = record.get("terms")[-1]

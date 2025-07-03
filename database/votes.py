@@ -176,7 +176,8 @@ class VoteOrm(BaseOrm):
             ]
 
         with Session(self.engine) as session:
-            # Rather than do the ORM bit piece by piece, store them and batch upsert them all at once.
+            # Rather than do the ORM bit piece by piece, store them and batch
+            # upsert them all at once.
             vote_meta_entries = []
             vote_entries = []
 
@@ -230,6 +231,7 @@ class VoteOrm(BaseOrm):
                             str(bill_number),
                             "data.json",
                         )
+
                         if os.path.exists(bill_pathspec):
                             with open(bill_pathspec, "r", encoding="utf-8") as bill_f:
                                 bill_data = json.loads(bill_f.read())
@@ -239,7 +241,12 @@ class VoteOrm(BaseOrm):
                                     -1 * int(amendment_number)
                                 ].get("amendment_id")
 
-                    if not self._amendment_datafile_exists(amendment_id):
+                    # If we've gotten to this point and still don't have an
+                    # # amendment_id, just skip the amendment altogether.
+                    if (
+                        amendment_id is not None
+                        and not self._amendment_datafile_exists(amendment_id)
+                    ):
                         # P000000 is a placeholder in the legislator table.
                         print(f"Creating placeholder amendment for {amendment_id}...")
                         self.amendment_orm.create_placeholder(
@@ -247,7 +254,7 @@ class VoteOrm(BaseOrm):
                             bill_id=bill_id,
                             sponsor_id="P000000",
                             congress=congress,
-                            session=session
+                            session=session,
                         )
 
                 vote_meta_entry = {
@@ -311,7 +318,7 @@ class VoteOrm(BaseOrm):
             # Batch commit 1000 at a time.
             batch_size = 1000
             for i in range(0, len(vote_entries), batch_size):
-                batch = vote_entries[i:i + batch_size]
+                batch = vote_entries[i : i + batch_size]
                 self.upsert_vote_batch(session, batch)
                 session.commit()
 
